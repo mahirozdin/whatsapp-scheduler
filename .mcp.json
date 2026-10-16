@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "whatsapp-scheduler": {
+      "command": "node",
+      "args": ["bin/whatsapp-scheduler.js", "mcp"]
+    }
+  }
+}

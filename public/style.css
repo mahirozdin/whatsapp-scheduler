@@ -1,0 +1,176 @@
+:root {
+  --accent: #059669;
+  --accent-dark: #047857;
+  --bg: #f4f5f4;
+  --card: #fff;
+  --text: #1c1f1d;
+  --muted: #6b716d;
+  --border: #dde1de;
+  --danger: #c2410c;
+  color-scheme: light dark;
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111412;
+    --card: #1a1e1c;
+    --text: #e8ebe9;
+    --muted: #9aa19c;
+    --border: #2d3330;
+    --danger: #fb923c;
+  }
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.45;
+}
+
+main {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+header, footer, .row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+header h1 { margin-right: auto; }
+h1 { font-size: 1.35rem; margin: 8px 0 16px; }
+h2 { font-size: 1.05rem; margin: 0 0 12px; }
+
+footer {
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 0.85rem;
+  padding: 4px 4px 24px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: 12px 0 4px;
+}
+
+label:first-of-type { margin-top: 0; }
+
+input, textarea, button {
+  font: inherit;
+  color: inherit;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+textarea { resize: vertical; }
+
+button {
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 16px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:hover { background: var(--accent-dark); }
+button:disabled { opacity: 0.6; cursor: default; }
+button.secondary { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+button.link { background: none; color: var(--muted); padding: 4px; font-weight: 400; text-decoration: underline; }
+
+.row { margin-top: 12px; }
+.row input { flex: 1; min-width: 160px; width: auto; }
+
+#login-form button { margin-top: 12px; width: 100%; }
+
+.pill {
+  font-size: 0.8rem;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--border);
+}
+
+.pill.online { background: var(--accent); color: #fff; }
+.pill.warn { background: var(--danger); color: #fff; }
+
+.hint { color: var(--muted); font-size: 0.85rem; margin: 8px 0 0; }
+.error { color: var(--danger); font-size: 0.9rem; margin: 8px 0 0; }
+.error:empty { display: none; }
+
+#qr svg { width: 240px; max-width: 100%; background: #fff; border-radius: 8px; display: block; }
+.code { font-family: ui-monospace, monospace; font-size: 1.8rem; letter-spacing: 0.15em; margin: 8px 0; }
+.code:empty { display: none; }
+
+.picker { position: relative; }
+
+#to-results {
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  right: 0;
+  margin: 4px 0 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  max-height: 260px;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
+}
+
+#to-results li {
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#to-results li:hover, #to-results li.active { background: var(--bg); }
+#to-results small { color: var(--muted); margin-left: 6px; }
+
+.messages { list-style: none; margin: 0; padding: 0; }
+
+.messages li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+
+.messages li:first-child { border-top: 0; }
+.messages .meta { font-size: 0.85rem; color: var(--muted); }
+.messages .who { font-weight: 600; }
+.messages .body { grid-column: 1 / -1; white-space: pre-wrap; word-break: break-word; }
+.messages .err { grid-column: 1 / -1; color: var(--danger); font-size: 0.85rem; }
+.messages .empty { color: var(--muted); display: block; }
+
+.status { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
+.status.sent { color: var(--accent); }
+.status.failed { color: var(--danger); }
+.status.canceled { color: var(--muted); }
