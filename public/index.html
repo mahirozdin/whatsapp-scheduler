@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#059669" />
+    <title>WhatsApp Scheduler</title>
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <main>
+      <section id="login" hidden>
+        <h1>WhatsApp Scheduler</h1>
+        <form id="login-form" class="card">
+          <label for="password">Password</label>
+          <input id="password" type="password" autocomplete="current-password" required autofocus />
+          <button type="submit">Log in</button>
+          <p class="hint">Forgot it? Run <code>npx whatsapp-scheduler password</code> on the machine running the scheduler.</p>
+          <p id="login-error" class="error"></p>
+        </form>
+      </section>
+
+      <section id="app" hidden>
+        <header>
+          <h1>WhatsApp Scheduler</h1>
+          <span id="wa-status" class="pill"></span>
+        </header>
+
+        <div id="link" class="card" hidden>
+          <h2>Link your WhatsApp</h2>
+          <p>On your phone open WhatsApp → <b>Settings</b> → <b>Linked devices</b> → <b>Link a device</b>.</p>
+          <div id="link-start">
+            <button id="link-qr">Show QR code</button>
+            <form id="link-phone-form" class="row">
+              <input id="link-phone" type="tel" placeholder="+90 555 123 45 67" />
+              <button type="submit" class="secondary">Use a pairing code instead</button>
+            </form>
+            <p class="hint">Use the pairing code when this page is open on the same phone as WhatsApp.</p>
+          </div>
+          <div id="link-pending" hidden>
+            <div id="qr"></div>
+            <p id="pair-code" class="code"></p>
+            <p id="link-wait" class="hint">Waiting for WhatsApp…</p>
+            <button id="link-cancel" class="link">Cancel</button>
+          </div>
+          <p id="link-error" class="error"></p>
+        </div>
+
+        <form id="schedule-form" class="card">
+          <h2>New message</h2>
+          <label for="to-search">To</label>
+          <div class="picker">
+            <input id="to-search" autocomplete="off" placeholder="Search a contact or group, or type +phone number" required />
+            <ul id="to-results" hidden></ul>
+          </div>
+          <label for="text">Message</label>
+          <textarea id="text" rows="4" required></textarea>
+          <label for="send-at">When</label>
+          <input id="send-at" type="datetime-local" required />
+          <div class="row">
+            <button type="submit">Schedule</button>
+            <button type="button" id="send-now" class="secondary">Send now</button>
+          </div>
+          <p id="schedule-error" class="error"></p>
+        </form>
+
+        <section class="card">
+          <h2>Scheduled</h2>
+          <ul id="scheduled" class="messages"></ul>
+        </section>
+
+        <section class="card">
+          <h2>History</h2>
+          <ul id="history" class="messages"></ul>
+        </section>
+
+        <footer>
+          <span id="tz"></span>
+          <span>
+            <button id="unlink" class="link" hidden>Unlink WhatsApp</button>
+            <button id="logout" class="link">Log out</button>
+          </span>
+        </footer>
+      </section>
+    </main>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
