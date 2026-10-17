@@ -12,6 +12,7 @@ const PUBLIC_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'public')
 const STATIC = {
   '/': ['index.html', 'text/html; charset=utf-8'],
   '/app.js': ['app.js', 'text/javascript; charset=utf-8'],
+  '/time.js': ['time.js', 'text/javascript; charset=utf-8'],
   '/style.css': ['style.css', 'text/css; charset=utf-8'],
   '/icon.svg': ['icon.svg', 'image/svg+xml'],
 };
@@ -57,7 +58,7 @@ async function readJson(req) {
   }
 }
 
-export function startServer({ config, service, whatsapp, log = console.log }) {
+export function startServer({ config, service, whatsapp, avatars, log = console.log }) {
   const sign = (value) => createHmac('sha256', config.sessionSecret).update(value).digest('base64url');
   const failedLogins = new Map(); // ip -> { count, since }
 
@@ -155,6 +156,8 @@ export function startServer({ config, service, whatsapp, log = console.log }) {
     requireAuth(req);
 
     if (path === '/api/status' && req.method === 'GET') return send(res, 200, await status());
+    if (path === '/api/settings' && req.method === 'GET') return send(res, 200, service.getSettings());
+    if (path === '/api/settings' && req.method === 'PUT') return send(res, 200, service.updateSettings(await readJson(req)));
     if (path === '/api/whatsapp/link' && req.method === 'POST') {
       const { phone } = await readJson(req);
       whatsapp.link({ phone: phone ? String(phone) : undefined });
@@ -177,6 +180,24 @@ export function startServer({ config, service, whatsapp, log = console.log }) {
     if (path === '/api/messages' && req.method === 'POST') {
       const body = await readJson(req);
       return send(res, 201, service.schedule({ ...body, source: hasToken(req) ? 'api' : 'web' }));
+    }
+    const avatar = path.match(/^\/api\/avatars\/([^/]+)$/);
+    if (avatar && req.method === 'GET') {
+      let jid;
+      try {
+        jid = decodeURIComponent(avatar[1]);
+      } catch {
+        throw new HttpError(400, 'invalid jid');
+      }
+      const image = avatars?.read(jid);
+      if (!image) throw new HttpError(404, 'no profile picture');
+      res.writeHead(200, {
+        'Content-Type': 'image/jpeg',
+        'Content-Length': image.length,
+        'Cache-Control': 'private, max-age=3600',
+        'X-Content-Type-Options': 'nosniff',
+      });
+      return res.end(image);
     }
     const match = path.match(/^\/api\/messages\/([\w-]+)$/);
     if (match && req.method === 'DELETE') return send(res, 200, service.cancel(match[1]));

@@ -12,7 +12,7 @@
 
 WhatsApp itself is built on [wacli](https://github.com/openclaw/wacli), an open-source WhatsApp command-line client. This project doesn't touch the WhatsApp protocol; it's a scheduler and a UI on top of wacli.
 
-<p align="center"><img src="docs/screenshot.png" width="380" alt="WhatsApp Scheduler web UI"></p>
+<p align="center"><img src="docs/screenshot.png" width="880" alt="WhatsApp Scheduler web UI"></p>
 
 > [!WARNING]
 > WhatsApp does not officially support third-party clients, and using one can get your number banned. The risk is low if you only send a few personal messages to people who know you, and high for bulk or unsolicited messages. **Do not use this for marketing or spam.** This project is not affiliated with WhatsApp or Meta.
@@ -49,7 +49,7 @@ The scheduler exposes these MCP tools:
 
 | Tool | What it does |
 | --- | --- |
-| `get_status` | Current time and timezone, and whether WhatsApp is linked |
+| `get_status` | Current time, your selected timezone, and whether WhatsApp is linked |
 | `find_recipient` | Search contacts and groups by name or number |
 | `schedule_message` | Schedule a message, or send it now |
 | `list_messages` | List scheduled, sent and failed messages |
@@ -148,17 +148,20 @@ Use any process manager, for example [pm2](https://pm2.keymetrics.io): `pm2 star
 | `PORT` / `HOST` | `3737` / `127.0.0.1` | Listen address. Keep `127.0.0.1` behind Tailscale Serve/Funnel. |
 | `WA_SCHEDULER_PASSWORD` | generated | Web UI password |
 | `WA_SCHEDULER_TOKEN` | generated | API and MCP token |
-| `WA_SCHEDULER_DATA` | `~/.local/share/whatsapp-scheduler` | Data directory: config, messages, wacli session |
+| `WA_SCHEDULER_DATA` | `~/.local/share/whatsapp-scheduler` | Data directory: config, settings, messages, profile pictures, wacli session |
 | `WA_SCHEDULER_MAX_DELAY_MINUTES` | `60` | If the scheduler was down at send time, still send up to this many minutes late; after that, mark the message as missed |
 | `WACLI_BIN` | auto | Use a specific wacli binary |
+
+The timezone used to read send times is a setting in the web UI (stored in `settings.json`); it defaults to the server's timezone. A send time without a UTC offset, from the UI, the API or MCP, is wall-clock time in that timezone, with daylight saving time handled.
 
 The data directory is `~/Library/Application Support/whatsapp-scheduler` on macOS and `%APPDATA%\whatsapp-scheduler` on Windows. It holds your WhatsApp session keys, so keep it private.
 
 ## How it works
 
-- `wacli sync --follow` keeps one linked-device connection open. Each due message is sent with `wacli send text`, which goes through that connection.
-- Scheduled messages are stored in `messages.json`, and the scheduler checks for due messages every 5 seconds.
+- `wacli sync --follow` keeps one linked-device connection open. Each due message is sent with `wacli send text`, which hands it to that connection right away.
+- Scheduled messages are stored in `messages.json`. A timer fires at the exact time of the next message, and a check every 5 seconds acts as a safety net.
 - Due messages are spaced at least 5 seconds apart.
+- Profile pictures of contacts and groups are cached in `avatars/`. wacli can only look them up while `sync` is stopped, and each lookup opens its own short WhatsApp connection. To keep that rare, at most 5 pictures are looked up at a time: once right before `sync` starts (your most recent chats), and then, by pausing `sync`, for the remaining recent chats and the contacts you search for or schedule: first about 5 minutes after startup, then at most every 30 minutes. So pictures fill in gradually. A pause usually takes 5-15 seconds and at most about a minute; messages sent in the meantime wait for it and go out right after. The pictures are downloaded after `sync` is back. Lookups never happen while you are linking or unlinking, while a message is sending, or when a message is due within 2 minutes.
 - A message that fails is never retried automatically. If the scheduler stops in the middle of a send, that message is marked as failed rather than resent, so nobody gets a duplicate.
 - "Sent" means WhatsApp accepted the message, not that it was delivered.
 
