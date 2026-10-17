@@ -143,7 +143,20 @@ export class WhatsApp {
       if (event.event === 'error') this.error = event.data?.message;
     });
 
+    // `wacli auth` keeps running after pairing to download history, so poll the
+    // session instead of waiting for it to exit; once linked, hand over to `sync`.
+    const poll = setInterval(async () => {
+      if (proc !== this.authProc) return clearInterval(poll);
+      const status = await this.run(['auth', 'status'], { timeoutMs: 10_000 });
+      if (proc !== this.authProc || !status.success || !status.data?.authenticated) return;
+      clearInterval(poll);
+      this.linked = true;
+      this.pairing = null;
+      proc.kill('SIGTERM');
+    }, 2000);
+
     proc.on('exit', async () => {
+      clearInterval(poll);
       if (proc !== this.authProc) return;
       this.authProc = null;
       this.pairing = null;
