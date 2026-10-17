@@ -1,6 +1,6 @@
 {
   "name": "whatsapp-scheduler",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Schedule WhatsApp messages from your own account. Tiny self-hosted web UI + MCP server for Claude Code / Codex, built on wacli.",
   "type": "module",
   "bin": {

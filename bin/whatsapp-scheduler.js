@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 import { join } from 'node:path';
+import { Avatars } from '../src/avatars.js';
 import { loadConfig } from '../src/config.js';
 import { startServer } from '../src/server.js';
 import { Service } from '../src/service.js';
+import { Settings } from '../src/settings.js';
 import { MessageStore } from '../src/store.js';
 import { resolveWacli, wacliVersion, WhatsApp } from '../src/wacli.js';
 
@@ -30,11 +32,22 @@ async function start(config) {
 
   const whatsapp = new WhatsApp({ bin, store: config.wacliStore, log });
   const store = new MessageStore(join(config.dir, 'messages.json'));
-  const service = new Service({ store, whatsapp, maxDelayMinutes: config.maxDelayMinutes, log });
+  const settings = new Settings(join(config.dir, 'settings.json'));
+  // Profile picture lookups briefly stop the WhatsApp connection, so never
+  // while pairing, sending, or with a message due in the next 2 minutes.
+  const avatars = new Avatars({
+    dir: join(config.dir, 'avatars'),
+    whatsapp,
+    log,
+    canPause: () => whatsapp.linked && !whatsapp.unlinking && !whatsapp.authProc && !whatsapp.sending && !service.busy(),
+  });
+  const service = new Service({ store, whatsapp, settings, avatars, maxDelayMinutes: config.maxDelayMinutes, log });
+  whatsapp.beforeSync = () => avatars.prefetch();
 
   await whatsapp.start();
   service.start();
-  await startServer({ config, service, whatsapp, log });
+  avatars.start();
+  await startServer({ config, service, whatsapp, avatars, log });
 
   const url = `http://${config.host === '0.0.0.0' ? 'localhost' : config.host}:${config.port}`;
   console.log(`
@@ -45,6 +58,7 @@ async function start(config) {
 
   const shutdown = () => {
     service.stop();
+    avatars.stop();
     whatsapp.stop();
     process.exit(0);
   };

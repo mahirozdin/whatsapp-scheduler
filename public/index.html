@@ -2,88 +2,194 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#059669" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#111413" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <title>WhatsApp Scheduler</title>
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/style.css" />
   </head>
-  <body>
-    <main>
-      <section id="login" hidden>
+  <body data-tab="new">
+    <main id="login" class="login" hidden>
+      <div class="login-box">
+        <img src="/icon.svg" width="48" height="48" alt="" class="login-logo" />
         <h1>WhatsApp Scheduler</h1>
-        <form id="login-form" class="card">
+        <form id="login-form" class="panel login-card">
           <label for="password">Password</label>
           <input id="password" type="password" autocomplete="current-password" required autofocus />
-          <button type="submit">Log in</button>
+          <button type="submit" class="primary">Log in</button>
           <p class="hint">Forgot it? Run <code>npx whatsapp-scheduler password</code> on the machine running the scheduler.</p>
-          <p id="login-error" class="error"></p>
+          <p id="login-error" class="error" role="alert"></p>
         </form>
-      </section>
-
-      <section id="app" hidden>
-        <header>
-          <h1>WhatsApp Scheduler</h1>
-          <span id="wa-status" class="pill"></span>
-        </header>
-
-        <div id="link" class="card" hidden>
-          <h2>Link your WhatsApp</h2>
-          <p>On your phone open WhatsApp → <b>Settings</b> → <b>Linked devices</b> → <b>Link a device</b>.</p>
-          <div id="link-start">
-            <button id="link-qr">Show QR code</button>
-            <form id="link-phone-form" class="row">
-              <input id="link-phone" type="tel" placeholder="+90 555 123 45 67" />
-              <button type="submit" class="secondary">Use a pairing code instead</button>
-            </form>
-            <p class="hint">Use the pairing code when this page is open on the same phone as WhatsApp.</p>
-          </div>
-          <div id="link-pending" hidden>
-            <div id="qr"></div>
-            <p id="pair-code" class="code"></p>
-            <p id="link-wait" class="hint">Waiting for WhatsApp…</p>
-            <button id="link-cancel" class="link">Cancel</button>
-          </div>
-          <p id="link-error" class="error"></p>
-        </div>
-
-        <form id="schedule-form" class="card">
-          <h2>New message</h2>
-          <label for="to-search">To</label>
-          <div class="picker">
-            <input id="to-search" autocomplete="off" placeholder="Search a contact or group, or type +phone number" required />
-            <ul id="to-results" hidden></ul>
-          </div>
-          <label for="text">Message</label>
-          <textarea id="text" rows="4" required></textarea>
-          <label for="send-at">When</label>
-          <input id="send-at" type="datetime-local" required />
-          <div class="row">
-            <button type="submit">Schedule</button>
-            <button type="button" id="send-now" class="secondary">Send now</button>
-          </div>
-          <p id="schedule-error" class="error"></p>
-        </form>
-
-        <section class="card">
-          <h2>Scheduled</h2>
-          <ul id="scheduled" class="messages"></ul>
-        </section>
-
-        <section class="card">
-          <h2>History</h2>
-          <ul id="history" class="messages"></ul>
-        </section>
-
-        <footer>
-          <span id="tz"></span>
-          <span>
-            <button id="unlink" class="link" hidden>Unlink WhatsApp</button>
-            <button id="logout" class="link">Log out</button>
-          </span>
-        </footer>
-      </section>
+      </div>
     </main>
+
+    <div id="app" hidden>
+      <header class="topbar">
+        <div class="brand">
+          <img src="/icon.svg" width="24" height="24" alt="" />
+          <span class="brand-name">WhatsApp Scheduler</span>
+        </div>
+        <button id="wa-status" type="button" class="pill connecting" aria-live="polite">
+          <span class="dot" aria-hidden="true"></span><span class="pill-label">Connecting…</span>
+        </button>
+        <button id="tz" type="button" class="ghost clock" aria-haspopup="dialog">
+          <span class="clock-time"></span><span class="clock-zone"></span><span class="clock-offset" hidden></span>
+        </button>
+        <button id="settings-btn" type="button" class="icon-btn" aria-label="Settings" aria-haspopup="dialog" data-icon="gear"></button>
+      </header>
+
+      <main class="board">
+        <section id="col-compose" class="col col-compose" aria-labelledby="compose-title">
+          <div id="link" class="panel link-card" hidden>
+            <div class="col-head"><h2>Link your WhatsApp</h2></div>
+            <div class="panel-body">
+              <p>On your phone open WhatsApp → <b>Settings</b> → <b>Linked devices</b> → <b>Link a device</b>.</p>
+              <div id="link-start">
+                <button id="link-qr" type="button" class="primary wide">Show QR code</button>
+                <form id="link-phone-form" class="row">
+                  <input id="link-phone" type="tel" placeholder="+90 555 123 45 67" aria-label="Your phone number" />
+                  <button type="submit" class="secondary">Use a pairing code instead</button>
+                </form>
+                <p class="hint">Use the pairing code when this page is open on the same phone as WhatsApp.</p>
+              </div>
+              <div id="link-pending" hidden>
+                <div id="qr"></div>
+                <p id="pair-code" class="code"></p>
+                <p id="link-wait" class="hint center" aria-live="polite">Waiting for WhatsApp…</p>
+                <button id="link-cancel" type="button" class="ghost">Cancel</button>
+              </div>
+              <p id="link-error" class="error"></p>
+            </div>
+          </div>
+
+          <form id="schedule-form" class="panel compose" novalidate>
+            <div class="col-head"><h2 id="compose-title">New message</h2></div>
+            <fieldset id="compose-fields" class="panel-body">
+              <p id="compose-note" class="note" hidden>Link WhatsApp to send messages.</p>
+
+              <label for="to-search" id="to-label">To</label>
+              <div class="picker">
+                <div id="to-chip" class="chip" tabindex="0" hidden>
+                  <span class="chip-avatar"></span>
+                  <span class="chip-name"></span>
+                  <span class="chip-sub"></span>
+                  <button type="button" class="icon-btn sm" aria-label="Change recipient" data-icon="x"></button>
+                </div>
+                <div class="search-wrap">
+                  <span class="search-icon" data-icon="search" aria-hidden="true"></span>
+                  <input
+                    id="to-search"
+                    role="combobox"
+                    aria-autocomplete="list"
+                    aria-expanded="false"
+                    aria-controls="to-results"
+                    autocomplete="off"
+                    spellcheck="false"
+                    placeholder="Name, group or +phone number"
+                  />
+                </div>
+                <ul id="to-results" role="listbox" aria-labelledby="to-label" hidden></ul>
+              </div>
+              <div id="to-status" class="visually-hidden" aria-live="polite"></div>
+
+              <label for="text">Message</label>
+              <div class="text-wrap">
+                <textarea id="text" rows="5" maxlength="4000" placeholder="Write a message…"></textarea>
+                <span id="text-count" class="counter" hidden></span>
+              </div>
+
+              <div class="label-row">
+                <span class="label" id="when-label">When</span>
+                <button type="button" id="when-tz" class="ghost xs" aria-haspopup="dialog" title="Change time zone"></button>
+              </div>
+              <div class="segmented" role="radiogroup" aria-labelledby="when-label">
+                <label><input type="radio" name="mode" value="schedule" checked /><span>Schedule</span></label>
+                <label><input type="radio" name="mode" value="now" /><span>Send now</span></label>
+              </div>
+              <div class="when-row">
+                <input id="send-at" type="datetime-local" step="300" lang="en-GB" aria-labelledby="when-label" />
+                <div class="quick-times" role="group" aria-label="Quick times"></div>
+              </div>
+              <p id="send-at-hint" class="hint" aria-live="polite"></p>
+
+              <p id="schedule-error" class="error" role="alert"></p>
+              <button id="submit-btn" type="submit" class="primary wide submit">
+                <span class="btn-icon" aria-hidden="true"></span><span class="btn-label">Schedule</span>
+              </button>
+            </fieldset>
+          </form>
+        </section>
+
+        <section id="col-scheduled" class="col panel" aria-labelledby="scheduled-title">
+          <div class="col-head">
+            <h2 id="scheduled-title">Scheduled <span id="count-scheduled" class="count">0</span></h2>
+          </div>
+          <div class="col-body">
+            <ul id="scheduled" class="messages" aria-label="Scheduled messages"></ul>
+          </div>
+        </section>
+
+        <section id="col-history" class="col panel" aria-labelledby="history-title">
+          <div class="col-head">
+            <h2 id="history-title">History <span id="count-history" class="count">0</span></h2>
+            <div class="segmented xs" role="radiogroup" aria-label="Filter history">
+              <label><input type="radio" name="history-filter" value="all" checked /><span>All</span></label>
+              <label><input type="radio" name="history-filter" value="sent" /><span>Sent</span></label>
+              <label><input type="radio" name="history-filter" value="failed" /><span>Failed</span></label>
+            </div>
+          </div>
+          <div class="col-body">
+            <ul id="history" class="messages" aria-label="Message history"></ul>
+          </div>
+        </section>
+      </main>
+
+      <nav class="tabbar" role="tablist" aria-label="Sections">
+        <button id="tab-scheduled" type="button" role="tab" aria-controls="col-scheduled" aria-selected="false" tabindex="-1" data-tab="scheduled">
+          <span class="tab-icon" data-icon="clock" aria-hidden="true"></span><span>Scheduled</span>
+          <span id="tab-count" class="tab-count" hidden></span>
+        </button>
+        <button id="tab-new" type="button" role="tab" aria-controls="col-compose" aria-selected="true" data-tab="new">
+          <span class="tab-icon" data-icon="pen" aria-hidden="true"></span><span>New</span>
+        </button>
+        <button id="tab-history" type="button" role="tab" aria-controls="col-history" aria-selected="false" tabindex="-1" data-tab="history">
+          <span class="tab-icon" data-icon="history" aria-hidden="true"></span><span>History</span>
+        </button>
+      </nav>
+
+      <dialog id="settings" aria-labelledby="settings-title">
+        <div class="dialog-inner">
+          <div class="dialog-head">
+            <h2 id="settings-title">Settings</h2>
+            <button id="settings-close" type="button" class="icon-btn" aria-label="Close" data-icon="x"></button>
+          </div>
+
+          <section class="set-section" aria-labelledby="set-tz-title">
+            <h3 id="set-tz-title">Time zone</h3>
+            <label for="tz-filter">Search</label>
+            <input id="tz-filter" type="text" enterkeyhint="done" placeholder="City or region, e.g. Istanbul" autocomplete="off" spellcheck="false" />
+            <label for="tz-select" class="visually-hidden">Time zone</label>
+            <select id="tz-select" size="7"></select>
+            <p id="tz-hint" class="hint"></p>
+            <button id="tz-use-device" type="button" class="ghost link" hidden></button>
+          </section>
+
+          <section class="set-section" aria-labelledby="set-wa-title">
+            <h3 id="set-wa-title">WhatsApp</h3>
+            <p id="wa-detail" class="set-text"></p>
+            <button id="unlink" type="button" class="danger" hidden>Unlink WhatsApp</button>
+          </section>
+
+          <section class="set-section" aria-labelledby="set-account-title">
+            <h3 id="set-account-title">Account</h3>
+            <button id="logout" type="button" class="secondary">Log out</button>
+          </section>
+        </div>
+      </dialog>
+
+      <div id="toasts" role="region" aria-label="Notifications"></div>
+    </div>
     <script type="module" src="/app.js"></script>
   </body>
 </html>
