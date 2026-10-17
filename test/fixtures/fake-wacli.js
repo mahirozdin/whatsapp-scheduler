@@ -36,10 +36,10 @@ if (flags.version) {
   event('auth_starting');
   if (flags.phone) event('pair_code', { phone: flags.phone, code: 'ABCD-EFGH' });
   else event('qr_code', { code: 'https://wa.me/settings/linked_devices#fake' });
-  setTimeout(() => {
-    writeFileSync(authed, '1');
-    process.exit(0);
-  }, Number(process.env.FAKE_WACLI_PAIR_MS || 800));
+  // Like real wacli, auth keeps running (history sync) after pairing succeeds.
+  setTimeout(() => writeFileSync(authed, '1'), Number(process.env.FAKE_WACLI_PAIR_MS || 800));
+  setInterval(() => {}, 1000);
+  process.on('SIGTERM', () => process.exit(0));
 } else if (cmd === 'sync') {
   event('connected');
   setInterval(() => {}, 1000);
